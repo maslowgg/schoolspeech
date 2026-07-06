@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>致詞金句庫</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --board-green: #2b5b3a;
+            --wood-frame: #8b5a2b;
+            --chalk-white: #f8f9fa;
+            --primary-action: #d4a373;
+            --primary-hover: #e3b88d;
+        }
+
+        body {
+            background-color: #d1bfae;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E");
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft JhengHei', sans-serif;
+            margin: 0;
+            padding: 20px 10px;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto; 
+        }
+
+        /* 黑板風格標題區 */
+        .chalkboard {
+            background-color: var(--board-green);
+            border: 10px solid var(--wood-frame);
+            border-radius: 8px;
+            padding: 25px 15px;
+            text-align: center;
+            color: var(--chalk-white);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3), inset 0 0 20px rgba(0,0,0,0.5);
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .chalkboard::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05' fill='white'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .chalkboard h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.4);
+            line-height: 1.3;
+        }
+
+        .chalkboard p {
+            margin: 0 0 20px 0;
+            font-size: 1.05rem;
+            color: #e0e0e0;
+            font-style: italic;
+        }
+
+        /* 關鍵字輸入區 */
+        .keyword-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap; 
+            gap: 10px;
+            margin-bottom: 15px;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px dashed rgba(255,255,255,0.3);
+        }
+
+        .keyword-container label {
+            font-size: 1.1rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 350px; 
+        }
+
+        .keyword-input {
+            flex: 1; 
+            min-width: 0; 
+            padding: 10px 15px;
+            font-size: 1.05rem;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 20px 0 0 20px; 
+            background-color: transparent;
+            color: white;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .keyword-input::placeholder {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.95rem;
+        }
+
+        .keyword-input:focus {
+            border-color: #fff78a;
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .submit-keyword-btn {
+            padding: 10px 15px;
+            font-size: 1.05rem;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-left: none; 
+            border-radius: 0 20px 20px 0; 
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            outline: none;
+            white-space: nowrap;
+        }
+
+        .submit-keyword-btn:hover:not(:disabled) {
+            background-color: #fff78a;
+            color: #333;
+            border-color: #fff78a;
+        }
+        
+        .submit-keyword-btn:active:not(:disabled) {
+            background-color: #e0c800;
+        }
+
+        .submit-keyword-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 頁籤按鈕 */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            position: relative;
+            z-index: 10;
+            flex-wrap: wrap; 
+        }
+
+        .tab-btn {
+            background-color: #fff;
+            border: 2px solid #ccc;
+            padding: 10px 18px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            color: #555;
+            transition: all 0.2s ease;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            font-family: inherit;
+        }
+
+        .tab-btn:hover { background-color: #f0f0f0; transform: translateY(-3px); }
+        .tab-btn.active {
+            background-color: #fff78a;
+            border-color: #e0c800;
+            color: #333;
+            transform: translateY(2px);
+            border-bottom: 2px solid #fff78a;
+        }
+
+        /* 金句佈告欄區域 */
+        .quote-board {
+            background-color: rgba(255, 255, 255, 0.4);
+            border: 2px dashed #a08c77;
+            border-radius: 15px;
+            padding: 30px 15px 40px 15px;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden; 
+        }
+
+        /* 便利貼風格的大金句卡片 */
+        .quote-card {
+            width: 90%;
+            max-width: 580px;
+            padding: 45px 30px 30px 30px;
+            border-radius: 2px 2px 20px 2px; 
+            box-shadow: 5px 8px 15px rgba(0,0,0,0.2);
+            font-size: 1.3rem;
+            line-height: 1.6;
+            position: relative;
+            background-color: #fff78a; 
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            word-wrap: break-word; 
+        }
+
+        .quote-card::before {
+            content: '📌';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            text-shadow: 2px 3px 4px rgba(0,0,0,0.3);
+        }
+
+        /* 生成來源標示 */
+        .source-tag {
+            display: block;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: normal;
+            font-style: italic;
+            text-align: right;
+            opacity: 0.8;
+            word-wrap: break-word;
+        }
+
+        .keyword-tag {
+            background-color: rgba(0,0,0,0.05);
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-right: 5px;
+            font-weight: bold;
+            color: #d4a373;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+
+        .internet-tag {
+            color: #2b5b3a;
+            font-weight: bold;
+        }
+
+        /* 刷新按鈕 */
+        .refresh-btn {
+            margin-top: 35px;
+            background: linear-gradient(to bottom, var(--primary-action), #bc8f5f);
+            border: 2px solid #8b5a2b;
+            color: white;
+            font-size: 1.15rem;
+            font-weight: bold;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.3);
+            transition: all 0.2s;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: auto;
+            max-width: 90%;
+        }
+
+        .refresh-btn:hover:not(:disabled) {
+            background: linear-gradient(to bottom, var(--primary-hover), #c99b6c);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.25), inset 0 2px 5px rgba(255,255,255,0.4);
+        }
+
+        .refresh-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .refresh-btn:disabled {
+            background: #a0a0a0;
+            border-color: #888;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 動畫與 Loading */
+        @keyframes stickOn {
+            0% { opacity: 0; transform: scale(1.5) rotate(10deg); }
+            50% { opacity: 1; transform: scale(0.95) rotate(-2deg); }
+            100% { transform: scale(1) var(--final-rotation); }
+        }
+        .animate-stick {
+            animation: stickOn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .loading-text {
+            display: inline-block;
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.5; transform: scale(0.98); }
+            100% { opacity: 1; transform: scale(1.02); }
+        }
+
+        @media (max-width: 600px) {
+            .chalkboard { padding: 20px 10px; border-width: 8px; }
+            .chalkboard h1 { font-size: 1.8rem; }
+            .keyword-container { flex-direction: column; align-items: stretch; padding: 12px; }
+            .keyword-container label { text-align: center; margin-bottom: 5px; }
+            .input-group { max-width: 100%; }
+            .tab-btn { padding: 8px 12px; font-size: 0.95rem; flex: 1 1 auto; text-align: center; }
+            .quote-card { width: 95%; font-size: 1.15rem; padding: 35px 20px 20px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="chalkboard">
+            <h1>🎒 致詞金句庫 🎓</h1>
+            <p>～ 結合網路熱搜梗，一秒變身孩子王 ～</p>
+            
+            <div class="keyword-container">
+                <label for="keyword">💡 主題：</label>
+                <div class="input-group">
+                    <input type="text" id="keyword" class="keyword-input" placeholder="例如：躲避球、安親班、期末考..." onkeypress="handleEnter(event)">
+                    <button id="submit-kw-btn" class="submit-keyword-btn" onclick="generateQuote(true)" title="送出主題，上網搜尋生成">
+                        🚀 送出
+                    </button>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button id="btn-student" class="tab-btn active" onclick="switchCategory('student')">🧒 說給小朋友</button>
+                <button id="btn-parent" class="tab-btn" onclick="switchCategory('parent')">👨‍👩‍👧 說給家長</button>
+                <button id="btn-teacher" class="tab-btn" onclick="switchCategory('teacher')">🍎 說給老師</button>
+                <button id="btn-volunteer" class="tab-btn" onclick="switchCategory('volunteer')">💛 說給志工</button>
+            </div>
+        </div>
+
+        <div class="quote-board">
+            <div id="quote-card" class="quote-card animate-stick">
+                <span id="quote-text">請選擇對象或輸入主題，我將為您準備專屬講稿！</span>
+                <span id="source-tag" class="source-tag"></span>
+            </div>
+
+            <button id="refresh-btn" class="refresh-btn" onclick="generateQuote(true)">
+                🔄 刷新
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = ""; 
+
+        // 本地備用庫（包含新增的志工分類）
+        const localQuotesData = {
+            student: ["「世界上最遙遠的距離不是天與地，而是下課鐘聲響了，你卻找不到躲避球在哪裡。」"],
+            parent: ["「每次看到聯絡簿上的創意簽名，就知道您昨晚陪寫注音一定又經歷了一場硬仗。」"],
+            teacher: ["「處理完這群半獸人一天的告狀，我覺得我比較需要去點一盞百年光明燈。」"],
+            volunteer: ["「每次看到導護志工在路口展現『一擋百』的氣勢，我都覺得漫威應該來台灣找超級英雄。」"]
+        };
+
+        const categoryNames = {
+            student: '國小學生（小朋友）',
+            parent: '國小學生的家長',
+            teacher: '國小老師',
+            volunteer: '國小校園志工（如導護志工、圖書志工等）'
+        };
+
+        const noteColors = ['#fff78a', '#ffc2d4', '#c2e2ff', '#c2ffcd', '#ffe6cc', '#e6c2ff'];
+        let currentCategory = 'student';
+        let isGenerating = false;
+
+        window.onload = () => {
+            // 載入時自動從網路搜尋第一句
+            generateQuote(true); 
+        };
+
+        function handleEnter(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                document.getElementById('keyword').blur(); 
+                generateQuote(true);
+            }
+        }
+
+        function switchCategory(category) {
+            if (isGenerating) return;
+            currentCategory = category;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${category}`).classList.add('active');
+
+            generateQuote(true); 
+        }
+
+        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        // 呼叫 Gemini API 並強制開啟「Google 搜尋 Grounding」功能
+        async function fetchAIQuote(category, keyword) {
+            const target = categoryNames[category];
+            let prompt = `你現在必須使用 Google Search 搜尋台灣網路上（如 PTT、Dcard、臉書社團、教育論壇）最新的國小相關笑話、網路迷因或家長老師的心聲。
+請將搜尋到的靈感，改寫成一句適合致詞的幽默金句。聽眾對象是：「${target}」。`;
+            
+            if (keyword) {
+                prompt += `\n請務必上網搜尋與「${keyword}」相關的國小校園梗。`;
+            }
+
+            // 針對不同對象微調提示詞，確保志工的內容有感恩與幽默兼具
+            if (category === 'volunteer') {
+                 prompt += `
+請針對「國小志工」的特性（例如風吹日曬的導護志工、整理書的圖書志工、晨光媽媽等），產出充滿感謝但又幽默接地氣的句子。`;
+            }
+
+            prompt += `
+要求：
+1. 內容必須非常接地氣，帶有台灣國小的生活共鳴。
+2. 結合網路搜尋到的梗或時事心聲，不要老套。
+3. 簡短有力，適合台上講出來（20~60字內）。
+4. 絕對不要輸出引號，只輸出句子本身。
+5. 每次都要給我不一樣的結果！`;
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                tools: [{ google_search: {} }]
+            };
+
+            const backoffDelays = [1000, 2000, 4000, 8000, 16000];
+
+            for (let i = 0; i < backoffDelays.length + 1; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const data = await response.json();
+                    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                    text = text.replace(/^["「『]/, '').replace(/["」』]$/, '').trim(); 
+                    
+                    let hasWebSource = false;
+                    const groundingMetadata = data.candidates?.[0]?.groundingMetadata;
+                    if (groundingMetadata && groundingMetadata.groundingAttributions && groundingMetadata.groundingAttributions.length > 0) {
+                        hasWebSource = true;
+                    }
+
+                    return { text: text, hasWebSource: hasWebSource };
+
+                } catch (error) {
+                    if (i === backoffDelays.length) throw error; 
+                    await delay(backoffDelays[i]);
+                }
+            }
+        }
+
+        async function generateQuote(shouldCallAI = true) {
+            if (isGenerating) return;
+            
+            const card = document.getElementById('quote-card');
+            const textSpan = document.getElementById('quote-text');
+            const sourceTag = document.getElementById('source-tag');
+            const btnRefresh = document.getElementById('refresh-btn');
+            const btnSubmitKw = document.getElementById('submit-kw-btn');
+            const keywordInput = document.getElementById('keyword').value.trim();
+
+            isGenerating = true;
+            btnRefresh.disabled = true;
+            btnSubmitKw.disabled = true;
+            
+            btnRefresh.innerHTML = '💡 靈感連線中...';
+            btnSubmitKw.innerHTML = '✏️ 撰寫中...';
+
+            card.classList.remove('animate-stick');
+            
+            const randomColor = noteColors[Math.floor(Math.random() * noteColors.length)];
+            const randomRotation = (Math.random() * 4 - 2).toFixed(1) + 'deg';
+            card.style.backgroundColor = randomColor;
+            card.style.setProperty('--final-rotation', `rotate(${randomRotation})`);
+
+            if (shouldCallAI) {
+                textSpan.innerHTML = '<span class="loading-text">🎤 麥克風試音中... 助手正在翻閱全台聯絡簿找靈感...</span>';
+                sourceTag.innerHTML = '';
+                
+                try {
+                    const result = await fetchAIQuote(currentCategory, keywordInput);
+                    if (result && result.text) {
+                        textSpan.textContent = "「" + result.text + "」";
+                        
+                        let sourceHTML = '— 由助手 <span class="internet-tag">即時搜尋網路</span> 生成 ✨';
+                        if (keywordInput) {
+                            sourceHTML = `<span class="keyword-tag">#${keywordInput}</span><br>` + sourceHTML;
+                        }
+                        sourceTag.innerHTML = sourceHTML;
+                    } else {
+                        throw new Error("API回傳空白");
+                    }
+                } catch (error) {
+                    console.error(error);
+                    fallbackToLocal();
+                }
+            } else {
+                fallbackToLocal();
+            }
+
+            function fallbackToLocal() {
+                const quotes = localQuotesData[currentCategory];
+                const newQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                textSpan.textContent = newQuote;
+                sourceTag.innerHTML = '— 網路斷線，來自本地備用金句庫';
+            }
+
+            void card.offsetWidth; 
+            card.classList.add('animate-stick');
+            
+            setTimeout(() => {
+                isGenerating = false;
+                btnRefresh.disabled = false;
+                btnSubmitKw.disabled = false;
+                btnRefresh.innerHTML = '🔄 刷新';
+                btnSubmitKw.innerHTML = '🚀 送出';
+            }, 400); 
+        }
+    </script>
+</body>
+</html>
