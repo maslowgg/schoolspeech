@@ -427,14 +427,14 @@
 
         const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-        // 呼叫 Gemini API 並開啟「Google 搜尋 Grounding」功能
+        // 呼叫 Gemini API 
         async function fetchAIQuote(category, keyword) {
             const target = categoryNames[category];
-            let prompt = `你現在必須使用 Google Search 搜尋台灣網路上（如 PTT、Dcard、臉書社團、教育論壇）最新的國小相關笑話、網路迷因或家長老師的心聲。
+            let prompt = `你現在必須搜尋台灣網路上（如 PTT、Dcard、臉書社團、教育論壇）最新的國小相關笑話、網路迷因或家長老師的心聲。
 請將搜尋到的靈感，改寫成一句適合致詞的幽默金句。聽眾對象是：「${target}」。`;
             
             if (keyword) {
-                prompt += `\n請務必上網搜尋與「${keyword}」相關的國小校園梗。`;
+                prompt += `\n請務必搜尋與「${keyword}」相關的國小校園梗。`;
             }
 
             if (category === 'volunteer') {
@@ -449,14 +449,21 @@
 4. 絕對不要輸出引號，只輸出句子本身。
 5. 每次都要給我不一樣的結果！`;
 
-            // 【重要修正】強制指定為預覽與多數帳號皆全面支援的最新測試版模型，徹底解決 404
-            const modelName = "gemini-2.5-flash-preview-09-2025";
+            // 【重要修正】智慧環境偵測：
+            // 1. 如果是外部 EZPage (有金鑰)，使用標準 gemini-1.5-flash，並移除內部專屬的搜尋工具參數，避免引發 404 不支援錯誤。
+            // 2. 如果是內部 Canvas (無金鑰)，使用專屬預覽模型並加上搜尋工具。
+            const isLocalPreview = !apiKey || apiKey.length < 10;
+            const modelName = isLocalPreview ? "gemini-2.5-flash-preview-09-2025" : "gemini-1.5-flash";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
             
             const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                tools: [{ google_search: {} }]
+                contents: [{ parts: [{ text: prompt }] }]
             };
+
+            // 只有在 Canvas 預覽環境中，才加上內部專用的網路搜尋工具
+            if (isLocalPreview) {
+                payload.tools = [{ google_search: {} }];
+            }
 
             const backoffDelays = [1000, 2000, 4000, 8000, 16000];
 
@@ -527,7 +534,7 @@
                     if (result && result.text) {
                         textSpan.textContent = "「" + result.text + "」";
                         
-                        let sourceHTML = '— 由助手 <span class="internet-tag">即時搜尋網路</span> 生成 ✨';
+                        let sourceHTML = '— 由助手 <span class="internet-tag">即時生成 ✨</span>';
                         if (keywordInput) {
                             sourceHTML = `<span class="keyword-tag">#${keywordInput}</span><br>` + sourceHTML;
                         }
