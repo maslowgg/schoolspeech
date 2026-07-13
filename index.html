@@ -259,6 +259,18 @@
             font-weight: bold;
         }
 
+        /* 錯誤訊息紅字樣式 */
+        .error-message {
+            font-size: 1rem;
+            color: #d32f2f;
+            text-align: left;
+            word-break: break-all;
+            background: rgba(255,255,255,0.7);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #d32f2f;
+        }
+
         /* 刷新按鈕 */
         .refresh-btn {
             margin-top: 35px;
@@ -367,12 +379,12 @@
     </div>
 
     <script>
-        // ✅ 您剛剛測試成功的那把金鑰，已經拆分好放在這裡了！
+        // 金鑰設定區：如果您拿到新的 AIza 開頭金鑰，請貼在這裡
         const keyPart1 = "AQ.Ab8RN6J6ATTBLyMt0sXqHLzm"; 
         const keyPart2 = "OaSTqj1-rhonCtiD4qnB2U-q5A";
         const apiKey = keyPart1 + keyPart2; 
 
-        // 本地備用庫（僅在網路完全斷線時的最後防線）
+        // 本地備用庫
         const localQuotesData = {
             student: ["「世界上最遙遠的距離不是天與地，而是下課鐘聲響了，你卻找不到躲避球在哪裡。」"],
             parent: ["「每次看到聯絡簿上的創意簽名，就知道您昨晚陪寫注音一定又經歷了一場硬仗。」"],
@@ -437,8 +449,8 @@
 4. 絕對不要輸出引號，只輸出句子本身。
 5. 每次都要給我不一樣的結果！`;
 
-            // 統一使用目前支援度最高的模型，避免 404 錯誤
-            const modelName = "gemini-2.5-flash-preview-09-2025";
+            // 切換為最廣泛支援的標準模型，避免 404 找不到模型的問題
+            const modelName = "gemini-1.5-flash";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
             
             const payload = {
@@ -458,7 +470,7 @@
                     
                     if (!response.ok) {
                         const errData = await response.json().catch(() => ({}));
-                        throw new Error(`HTTP error! status: ${response.status}. Details: ${JSON.stringify(errData)}`);
+                        throw new Error(`HTTP ${response.status}: ${errData.error?.message || '未知錯誤'}`);
                     }
                     
                     const data = await response.json();
@@ -475,7 +487,6 @@
 
                 } catch (error) {
                     if (i === backoffDelays.length) {
-                        console.error("API 請求最終失敗:", error);
                         throw error;
                     }
                     await delay(backoffDelays[i]);
@@ -525,8 +536,10 @@
                         throw new Error("API回傳空白");
                     }
                 } catch (error) {
-                    console.error("連網生成過程發生錯誤:", error);
-                    fallbackToLocal();
+                    console.error("連網發生錯誤:", error);
+                    // 【雷達診斷模式】如果失敗，不換成本地金句，而是直接印出紅字錯誤原因
+                    textSpan.innerHTML = `<div class="error-message"><b>❌ 連線被 Google 伺服器拒絕：</b><br>${error.message}</div>`;
+                    sourceTag.innerHTML = '— 系統診斷報告';
                 }
             } else {
                 fallbackToLocal();
