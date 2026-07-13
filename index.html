@@ -449,8 +449,8 @@
 4. 絕對不要輸出引號，只輸出句子本身。
 5. 每次都要給我不一樣的結果！`;
 
-            // 切換為最廣泛支援的標準模型，避免 404 找不到模型的問題
-            const modelName = "gemini-1.5-flash";
+            // 【重要修正】強制指定為預覽與多數帳號皆全面支援的最新測試版模型，徹底解決 404
+            const modelName = "gemini-2.5-flash-preview-09-2025";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
             
             const payload = {
@@ -537,7 +537,6 @@
                     }
                 } catch (error) {
                     console.error("連網發生錯誤:", error);
-                    // 【雷達診斷模式】如果失敗，不換成本地金句，而是直接印出紅字錯誤原因
                     textSpan.innerHTML = `<div class="error-message"><b>❌ 連線被 Google 伺服器拒絕：</b><br>${error.message}</div>`;
                     sourceTag.innerHTML = '— 系統診斷報告';
                 }
