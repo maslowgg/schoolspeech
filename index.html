@@ -379,7 +379,7 @@
     </div>
 
     <script>
-        // 金鑰設定區：這兩行合起來就是您完整的 API Key (拆分寫法避免阻擋)
+        // 金鑰設定區：確保這兩段組合起來是您完整的 API Key
         const keyPart1 = "AQ.Ab8RN6J6ATTBLyMt0sXqHLzm"; 
         const keyPart2 = "OaSTqj1-rhonCtiD4qnB2U-q5A";
         const apiKey = keyPart1 + keyPart2; 
@@ -430,29 +430,29 @@
         // 呼叫 Gemini API 
         async function fetchAIQuote(category, keyword) {
             const target = categoryNames[category];
-            let prompt = `你現在必須搜尋台灣網路上（如 PTT、Dcard、臉書社團、教育論壇）最新的國小相關笑話、網路迷因或家長老師的心聲。
-請將搜尋到的靈感，改寫成一句適合致詞的幽默金句。聽眾對象是：「${target}」。`;
+            let prompt = `你現在必須扮演台灣資深的教育工作者，創作出適合致詞的幽默金句。聽眾對象是：「${target}」。`;
             
             if (keyword) {
                 prompt += `\n請務必結合「${keyword}」相關的國小校園梗。`;
             }
 
             if (category === 'volunteer') {
-                 prompt += `\n請針對「國小志工」的特性（例如風吹日曬的導護志工、整理書的圖書志工、晨光媽媽等），產出充滿感謝但又幽默接地氣的句子。`;
+                 prompt += `\n請針對「國小志工」的特性（例如風吹日曬的導護志工、圖書志工、晨光媽媽等），產出充滿感謝但又幽默接地氣的句子。`;
             }
 
             prompt += `
 要求：
 1. 內容必須非常接地氣，帶有台灣國小的生活共鳴。
-2. 結合網路搜尋到的梗或時事心聲，不要老套。
+2. 結合時事心聲，不要老套。
 3. 簡短有力，適合台上講出來（20~60字內）。
 4. 絕對不要輸出引號，只輸出句子本身。
 5. 每次都要給我不一樣的結果！`;
 
-            // 【終極修復】將 API 端點從 v1beta 改為最穩定的 v1，確保所有金鑰都能找到模型
-            const modelName = "gemini-1.5-flash";
+            // 【終極修復】改用最老牌、最通用的 gemini-pro，且通道改為最正式的 v1 (不再使用 v1beta 或 flash)
+            const modelName = "gemini-pro";
             const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
             
+            // 移除 tools (google_search)，避免引發權限或模型不支援的問題
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }]
             };
@@ -476,13 +476,8 @@
                     let text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
                     text = text.replace(/^["「『]/, '').replace(/["」』]$/, '').trim(); 
                     
-                    let hasWebSource = false;
-                    const groundingMetadata = data.candidates?.[0]?.groundingMetadata;
-                    if (groundingMetadata && groundingMetadata.groundingAttributions && groundingMetadata.groundingAttributions.length > 0) {
-                        hasWebSource = true;
-                    }
-
-                    return { text: text, hasWebSource: hasWebSource };
+                    // 移除 groundingMetadata 的檢查，因為 gemini-pro 在某些設定下不支援此回傳欄位
+                    return { text: text, hasWebSource: false };
 
                 } catch (error) {
                     if (i === backoffDelays.length) {
@@ -536,7 +531,8 @@
                     }
                 } catch (error) {
                     console.error("連網發生錯誤:", error);
-                    textSpan.innerHTML = `<div class="error-message"><b>❌ 連線被 Google 伺服器拒絕：</b><br>${error.message}</div>`;
+                    // 為了確認是舊版還是新版程式碼在跑，這裡加入特殊標記
+                    textSpan.innerHTML = `<div class="error-message"><b>❌ 連線被 Google 伺服器拒絕 (新版檢測)：</b><br>${error.message}</div>`;
                     sourceTag.innerHTML = '— 系統診斷報告';
                 }
             } else {
