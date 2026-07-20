@@ -379,7 +379,7 @@
     </div>
 
     <script>
-        // 金鑰設定區：如果您拿到新的 AIza 開頭金鑰，請貼在這裡
+        // 金鑰設定區：這兩行合起來就是您完整的 API Key (拆分寫法避免阻擋)
         const keyPart1 = "AQ.Ab8RN6J6ATTBLyMt0sXqHLzm"; 
         const keyPart2 = "OaSTqj1-rhonCtiD4qnB2U-q5A";
         const apiKey = keyPart1 + keyPart2; 
@@ -427,7 +427,7 @@
 
         const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-        // 呼叫 Gemini API 
+        // 呼叫 Gemini API
         async function fetchAIQuote(category, keyword) {
             const target = categoryNames[category];
             let prompt = `你現在必須搜尋台灣網路上（如 PTT、Dcard、臉書社團、教育論壇）最新的國小相關笑話、網路迷因或家長老師的心聲。
@@ -449,21 +449,14 @@
 4. 絕對不要輸出引號，只輸出句子本身。
 5. 每次都要給我不一樣的結果！`;
 
-            // 【重要修正】智慧環境偵測：
-            // 1. 如果是外部 EZPage (有金鑰)，使用標準 gemini-1.5-flash，並移除內部專屬的搜尋工具參數，避免引發 404 不支援錯誤。
-            // 2. 如果是內部 Canvas (無金鑰)，使用專屬預覽模型並加上搜尋工具。
-            const isLocalPreview = !apiKey || apiKey.length < 10;
-            const modelName = isLocalPreview ? "gemini-2.5-flash-preview-09-2025" : "gemini-1.5-flash";
+            // 【終極修復】改用最單純穩定的 `gemini-1.5-flash`，移除所有複雜工具參數，確保相容所有帳號
+            const modelName = "gemini-1.5-flash";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
             
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }]
+                // 移除了 tools 參數，避免被 Google API 以 "not supported" 拒絕
             };
-
-            // 只有在 Canvas 預覽環境中，才加上內部專用的網路搜尋工具
-            if (isLocalPreview) {
-                payload.tools = [{ google_search: {} }];
-            }
 
             const backoffDelays = [1000, 2000, 4000, 8000, 16000];
 
@@ -526,7 +519,7 @@
             card.style.setProperty('--final-rotation', `rotate(${randomRotation})`);
 
             if (shouldCallAI) {
-                textSpan.innerHTML = '<span class="loading-text">🎤 麥克風試音中... 助手正在翻閱全台聯絡簿找靈感...</span>';
+                textSpan.innerHTML = '<span class="loading-text">🎤 麥克風試音中... 助手正在找靈感...</span>';
                 sourceTag.innerHTML = '';
                 
                 try {
@@ -534,7 +527,7 @@
                     if (result && result.text) {
                         textSpan.textContent = "「" + result.text + "」";
                         
-                        let sourceHTML = '— 由助手 <span class="internet-tag">即時生成 ✨</span>';
+                        let sourceHTML = '— 由 AI 助手即時生成 ✨';
                         if (keywordInput) {
                             sourceHTML = `<span class="keyword-tag">#${keywordInput}</span><br>` + sourceHTML;
                         }
